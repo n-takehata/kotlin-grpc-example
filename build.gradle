@@ -1,0 +1,81 @@
+plugins {
+	id("org.springframework.boot") version "2.1.6.RELEASE"
+	id("org.jetbrains.kotlin.jvm") version "1.3.21"
+	id("org.jetbrains.kotlin.plugin.spring") version "1.3.21"
+	id("io.spring.dependency-management") version "1.0.7.RELEASE"
+	id("com.google.protobuf") version "0.8.9" // Protocol Buffersを扱うためのプラグイン
+	id( "java")
+}
+
+sourceSets {
+	main {
+		proto {
+			srcDir 'src/main/protobuf'
+		}
+
+		java {
+			srcDirs 'src/main/generated'
+		}
+	}
+}
+
+group = "com.example.grpc.kotlin"
+version = "0.0.1-SNAPSHOT"
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+def grpcVersion = "1.10.0"
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+	compile("io.github.lognet:grpc-spring-boot-starter:3.3.0") // gRPCをSpring Bootで扱うためのStarter
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+compileKotlin {
+	kotlinOptions {
+		freeCompilerArgs = ['-Xjsr305=strict']
+		jvmTarget = '1.8'
+	}
+}
+
+protobuf { // Protocol Buffersのコードジェネレータに関する設定
+	protoc {
+		artifact = "com.google.protobuf:protoc:3.5.1-1"
+	}
+
+	plugins {
+		grpc {
+			artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+		}
+	}
+
+	generateProtoTasks {
+		all().each { task ->
+			task.builtins {
+				// Protocol Buffers関連のファイル出力先
+				java {
+					outputSubDir = "generated"
+				}
+			}
+			task.plugins {
+				// gRPC関連のファイル出力先
+				grpc {
+					outputSubDir = "generated"
+				}
+			}
+		}
+	}
+
+	generatedFilesBaseDir = "$projectDir/src/"
+}
+
+clean {
+	delete "$protobuf.generatedFilesBaseDir/main/generated"
+}

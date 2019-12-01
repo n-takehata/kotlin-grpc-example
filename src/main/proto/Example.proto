@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "com.example.grpc.kotlingrpcexample.proto";
+option java_outer_classname = "GreeterProtobuf";
+option java_multiple_files = true;
+
+import "Messages.proto";
+
+service Example {
+    rpc CreateMessage (CreateMessageRequest) returns (CreateMessageResponse);
+}
+
